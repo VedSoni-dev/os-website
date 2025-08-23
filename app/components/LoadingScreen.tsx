@@ -10,10 +10,10 @@ interface LoadingScreenProps {
 export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   
-  const fullPassword = "vedant2025"
+  // Use a generic demo password instead of personal one
+  const fullPassword = "demo2025"
   
   useEffect(() => {
     const timer = setTimeout(() => {
