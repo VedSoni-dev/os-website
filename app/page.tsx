@@ -8,6 +8,7 @@ import DesktopWindow from "./components/Window"
 import CommandPalette from "./components/CommandPalette"
 import BuildingStatus from "./components/BuildingStatus"
 import LoadingScreen from "./components/LoadingScreen"
+import { BackgroundGlitch, ErrorPopups, GlitchStyles, GlitchText } from "./components/GlitchEffects"
 import { AnimatePresence, motion } from "framer-motion"
 import { useThemeStore } from "@/lib/theme-store"
 
@@ -80,7 +81,7 @@ function AboutContent() {
   return (
     <div className="p-5 md:p-6">
       <h1 className="font-black leading-none" style={{ fontSize: 52 }}>
-        Hello, I&apos;m Vedant.
+        <GlitchText>Hello, I&apos;m Vedant.</GlitchText>
       </h1>
       <p className="mt-4 text-lg">
         CS and AI/BS student at Texas A&M University, building the future through intelligent systems and robotics
@@ -829,6 +830,11 @@ export default function Page() {
 
   return (
     <main className="fixed inset-0 overflow-hidden">
+      {/* Glitch Effects */}
+      <GlitchStyles />
+      <BackgroundGlitch />
+      <ErrorPopups />
+      
       {/* Background: off-white, 8px grid + subtle grain */}
       <div
         className="absolute inset-0"
