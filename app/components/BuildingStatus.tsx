@@ -64,18 +64,23 @@ export default function BuildingStatus() {
   }, [])
 
   return (
-    <div 
-      className={`fixed top-1/2 right-32 transform -translate-y-1/2 text-4xl text-gray-400 font-mono z-10 pointer-events-none select-none transition-all duration-150 ${
-        glitchActive ? 'text-red-500 filter contrast-150' : ''
-      }`}
-      style={{
-        textShadow: glitchActive 
-          ? '2px 0 #00ffff, -2px 0 #ff00ff' 
-          : 'none'
-      }}
-    >
-      {displayText}
-      {isTyping && <span className="animate-pulse">|</span>}
+    <div className="fixed top-1/2 right-32 transform -translate-y-1/2 z-10 pointer-events-none select-none">
+      <div className="flex flex-col items-start gap-2">
+        <span className="text-gray-500 text-2xl">Building:</span>
+        <span 
+          className={`min-w-[400px] font-bold text-4xl font-mono transition-all duration-150 ${
+            glitchActive ? 'text-red-500 filter contrast-150' : 'text-gray-400'
+          }`}
+          style={{
+            textShadow: glitchActive 
+              ? '2px 0 #00ffff, -2px 0 #ff00ff' 
+              : 'none'
+          }}
+        >
+          {displayText}
+          {isTyping && <span className="animate-pulse">|</span>}
+        </span>
+      </div>
     </div>
   )
 }
