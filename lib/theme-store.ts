@@ -16,6 +16,8 @@ export const useThemeStore = create<ThemeStore>()(
     }),
     {
       name: "theme-storage",
+      // Only persist on client side
+      skipHydration: true,
     },
   ),
 )

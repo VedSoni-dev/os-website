@@ -51,8 +51,8 @@ const nextConfig = {
   experimental: {
     // Disable potentially dangerous features
     scrollRestoration: false,
-    // Enable modern features safely
-    optimizeCss: true,
+    // Disable CSS optimization that's causing build issues
+    // optimizeCss: true,
     optimizePackageImports: ['framer-motion']
   }
 }
