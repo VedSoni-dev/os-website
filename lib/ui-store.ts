@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 
-export type AppKey = "about" | "projects" | "talk" | "philosophy" | "experience" | "palette" | null
+export type AppKey = "about" | "projects" | "talk" | "philosophy" | "experience" | "blog" | "palette" | null
 
 type UIState = {
   activeApp: AppKey

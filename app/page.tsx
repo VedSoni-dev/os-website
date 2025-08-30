@@ -665,6 +665,227 @@ function TalkContent() {
   )
 }
 
+function BlogContent({ onBlogClick }: { onBlogClick: (blogId: string) => void }) {
+  const blogPosts = [
+    {
+      id: "ai-robotics-future",
+      title: "The Future of AI and Robotics",
+      excerpt: "Exploring how artificial intelligence and robotics will transform our daily lives and work environments.",
+      date: "2025-01-15",
+      category: "Technology",
+      image: "/neural-network-visualization.png",
+      readTime: "5 min read"
+    },
+    {
+      id: "startup-journey",
+      title: "Building Fern: From Idea to 6,500 Users",
+      excerpt: "The story behind creating AI tools for children with disabilities and scaling to help thousands of families.",
+      date: "2025-01-10",
+      category: "Startup",
+      image: "/fern-ai-tools.png",
+      readTime: "8 min read"
+    },
+    {
+      id: "robotics-research",
+      title: "Advancements in Robotic Swarm Intelligence",
+      excerpt: "My research on developing AI algorithms for intelligent robotic swarm coordination at Texas A&M.",
+      date: "2025-01-05",
+      category: "Research",
+      image: "/autonomous-drone-landscape.png",
+      readTime: "6 min read"
+    },
+    {
+      id: "machine-learning",
+      title: "Teaching Cars to Drive with Reinforcement Learning",
+      excerpt: "How I implemented deep Q-learning networks for autonomous vehicle navigation at tidalTAMU.",
+      date: "2024-12-20",
+      category: "AI/ML",
+      image: "/computer-vision-object-detection.png",
+      readTime: "7 min read"
+    }
+  ]
+
+  return (
+    <div className="p-6">
+      <h2 className="font-black text-3xl mb-6 border-b-[3px] border-black pb-3">Blog & Thoughts</h2>
+      <p className="text-lg text-gray-600 mb-8">
+        Sharing insights on AI, robotics, startups, and the future of technology.
+      </p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {blogPosts.map((post) => (
+          <div
+            key={post.id}
+            className="border-[3px] border-black bg-white shadow-[6px_6px_0_0_#000] hover:shadow-[8px_8px_0_0_#000] transition-all duration-200 cursor-pointer overflow-hidden"
+            onClick={() => onBlogClick(post.id)}
+          >
+            <img
+              src={post.image}
+              alt={post.title}
+              className="w-full h-48 object-cover border-b-[3px] border-black"
+            />
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-3 py-1 text-xs font-bold border-[2px] border-black bg-yellow-300">
+                  {post.category}
+                </span>
+                <span className="text-sm text-gray-500">{post.readTime}</span>
+              </div>
+              <h3 className="font-black text-xl mb-2">{post.title}</h3>
+              <p className="text-gray-600 mb-3">{post.excerpt}</p>
+              <div className="text-sm text-gray-500">{post.date}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BlogDetailContent({ blogId }: { blogId: string }) {
+  const blogPosts = {
+    "ai-robotics-future": {
+      title: "The Future of AI and Robotics",
+      date: "January 15, 2025",
+      category: "Technology",
+      image: "/neural-network-visualization.png",
+      content: `
+        <p class="mb-4">As we stand on the cusp of a new technological revolution, the intersection of artificial intelligence and robotics is poised to fundamentally transform how we live, work, and interact with the world around us.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">The Current State</h3>
+        <p class="mb-4">Today's AI systems can process vast amounts of data, recognize patterns, and make decisions with remarkable accuracy. Robotics, on the other hand, has evolved from simple mechanical arms to sophisticated autonomous systems capable of navigating complex environments.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Integration Challenges</h3>
+        <p class="mb-4">The challenge lies in seamlessly integrating these two fields. While AI excels at decision-making and pattern recognition, robotics provides the physical embodiment and interaction capabilities. Bridging this gap requires innovative approaches to sensor fusion, real-time processing, and adaptive control systems.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Future Applications</h3>
+        <p class="mb-4">From healthcare robots that can perform complex surgeries to autonomous vehicles that navigate our cities, the possibilities are endless. The key is developing systems that are not only intelligent but also safe, reliable, and beneficial to humanity.</p>
+      `,
+      attachments: [
+        { name: "AI-Robotics-Research.pdf", type: "pdf", url: "#" }
+      ]
+    },
+    "startup-journey": {
+      title: "Building Fern: From Idea to 6,500 Users",
+      date: "January 10, 2025",
+      category: "Startup",
+      image: "/fern-ai-tools.png",
+      content: `
+        <p class="mb-4">Building Fern has been one of the most rewarding experiences of my entrepreneurial journey. What started as a simple idea to help children with disabilities has grown into a platform serving thousands of families.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">The Genesis</h3>
+        <p class="mb-4">The idea for Fern came from observing the challenges faced by families with children who have autism and other disabilities. Traditional tools were often expensive, difficult to use, or simply not effective enough.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Building the Solution</h3>
+        <p class="mb-4">We focused on creating AI-powered tools that were not only effective but also accessible and user-friendly. The key was understanding that technology should adapt to the user, not the other way around.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Scaling Impact</h3>
+        <p class="mb-4">Reaching 6,500 active users has been incredible, but what's more meaningful is the stories we hear from families about how Fern has helped their children develop new skills and confidence.</p>
+      `,
+      attachments: [
+        { name: "Fern-Case-Study.pdf", type: "pdf", url: "#" },
+        { name: "User-Feedback-Report.pdf", type: "pdf", url: "#" }
+      ]
+    },
+    "robotics-research": {
+      title: "Advancements in Robotic Swarm Intelligence",
+      date: "January 5, 2025",
+      category: "Research",
+      image: "/autonomous-drone-landscape.png",
+      content: `
+        <p class="mb-4">At the Adaptive Robotics and Technology (ART) Lab at Texas A&M, I'm working on developing AI algorithms that enable robots to work together as intelligent swarms.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Swarm Intelligence Principles</h3>
+        <p class="mb-4">Swarm robotics draws inspiration from nature, where simple individual behaviors lead to complex collective intelligence. Think of how ants coordinate to find food or how birds flock together.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Technical Challenges</h3>
+        <p class="mb-4">The main challenges include distributed decision-making, communication protocols, and ensuring robustness when individual robots fail. Our algorithms need to handle dynamic environments and changing team compositions.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Applications</h3>
+        <p class="mb-4">Potential applications range from search and rescue operations to environmental monitoring and agricultural automation. The key advantage is that swarms can cover large areas efficiently and adapt to changing conditions.</p>
+      `,
+      attachments: [
+        { name: "Swarm-Robotics-Paper.pdf", type: "pdf", url: "#" },
+        { name: "Algorithm-Performance-Analysis.pdf", type: "pdf", url: "#" }
+      ]
+    },
+    "machine-learning": {
+      title: "Teaching Cars to Drive with Reinforcement Learning",
+      date: "December 20, 2024",
+      category: "AI/ML",
+      image: "/computer-vision-object-detection.png",
+      content: `
+        <p class="mb-4">During my time at tidalTAMU, I worked on implementing reinforcement learning algorithms for autonomous vehicle navigation, specifically focusing on deep Q-learning networks.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Reinforcement Learning Basics</h3>
+        <p class="mb-4">Reinforcement learning is like teaching through trial and error. The agent (in this case, a car) learns by taking actions and receiving rewards or penalties based on the outcomes.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Deep Q-Learning Implementation</h3>
+        <p class="mb-4">We implemented deep Q-learning networks that could process real-time sensor data and make driving decisions. The key innovation was in the reward system design and the training environment setup.</p>
+        
+        <h3 class="font-black text-xl mb-3 mt-6">Results and Learnings</h3>
+        <p class="mb-4">The system showed significant improvements in autonomous driving performance, particularly in handling edge cases and adapting to different driving conditions. The experience taught me valuable lessons about the importance of proper reward engineering.</p>
+      `,
+      attachments: [
+        { name: "RL-Driving-Research.pdf", type: "pdf", url: "#" },
+        { name: "Performance-Metrics.pdf", type: "pdf", url: "#" }
+      ]
+    }
+  }
+
+  const post = blogPosts[blogId as keyof typeof blogPosts]
+
+  if (!post) {
+    return <div className="p-5">Blog post not found</div>
+  }
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="px-3 py-1 text-sm font-bold border-[2px] border-black bg-yellow-300">
+            {post.category}
+          </span>
+          <span className="text-gray-500">{post.date}</span>
+        </div>
+        <h1 className="font-black text-3xl mb-4">{post.title}</h1>
+      </div>
+      
+      <img
+        src={post.image}
+        alt={post.title}
+        className="w-full h-64 object-cover border-[3px] border-black shadow-[6px_6px_0_0_#000] mb-6"
+      />
+      
+      <div 
+        className="prose prose-lg max-w-none mb-8"
+        dangerouslySetInnerHTML={{ __html: post.content }}
+      />
+      
+      {post.attachments && post.attachments.length > 0 && (
+        <div className="border-[3px] border-black bg-white shadow-[6px_6px_0_0_#000] p-5">
+          <h3 className="font-black text-xl mb-4">Attachments</h3>
+          <div className="space-y-3">
+            {post.attachments.map((attachment, idx) => (
+              <a
+                key={idx}
+                href={attachment.url}
+                className="flex items-center gap-3 p-3 border-[2px] border-black bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+              >
+                <svg className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                </svg>
+                <span className="font-semibold">{attachment.name}</span>
+                <span className="text-sm text-gray-500">({attachment.type.toUpperCase()})</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function LinkIcon({ type, url, label }: { type: string; url: string; label: string }) {
   const getIcon = () => {
     switch (type) {
@@ -763,6 +984,7 @@ export default function Page() {
         title: "Experience",
         content: <ExperienceContent onExperienceClick={(experienceId) => openApp(experienceId as any)} />,
       },
+      { key: "blog", title: "Blog & Thoughts", content: <BlogContent onBlogClick={(blogId) => openApp(blogId as any)} /> },
       ...projectsData.map((project) => ({
         key: project.id as any,
         title: project.title,
@@ -799,6 +1021,16 @@ export default function Page() {
                           ? "ML Engineer - tidalTAMU"
                           : "Research Project Lead",
         content: <ExperienceDetailContent experienceId={expId} />,
+      })),
+      ...[
+        "ai-robotics-future",
+        "startup-journey",
+        "robotics-research",
+        "machine-learning",
+      ].map((blogId) => ({
+        key: blogId as any,
+        title: blogId.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+        content: <BlogDetailContent blogId={blogId} />,
       })),
     ],
     [openApp],

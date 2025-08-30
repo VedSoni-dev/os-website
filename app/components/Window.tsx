@@ -35,6 +35,7 @@ export default function DesktopWindow({
       projects: { x: 160, y: 120 },
       philosophy: { x: 260, y: 140 },
       experience: { x: 200, y: 160 },
+      blog: { x: 240, y: 180 },
     }
     const off = offsets[appKey] ?? { x: 120, y: 120 }
     pos.current = off

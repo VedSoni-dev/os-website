@@ -32,6 +32,7 @@ export default function CommandPalette({
       "  projects    - Open projects/startups gallery",
       "  talk        - Open talk to me section",
       "  experience  - Open experience section",
+      "  blog        - Open blog section",
       "  reset       - Reset desktop",
       "  clear       - Clear terminal history",
       "  --help      - Show this help message",
@@ -52,6 +53,10 @@ export default function CommandPalette({
     experience: () => {
       onAction("experience")
       return ["Opening Experience section..."]
+    },
+    blog: () => {
+      onAction("blog")
+      return ["Opening Blog section..."]
     },
     reset: () => {
       onReset()

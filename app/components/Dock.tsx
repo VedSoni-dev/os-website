@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { User, Images, FileText, Palette, MessageCircle } from "lucide-react"
+import { User, Images, FileText, Palette, MessageCircle, BookOpen } from "lucide-react"
 import type { AppKey } from "@/lib/ui-store"
 
 const ACCENT = "#FF2E63"
@@ -17,6 +17,7 @@ const ITEMS: DockItem[] = [
   { key: "projects", label: "Projects/Startups", icon: Images },
   { key: "talk", label: "Talk to Me", icon: MessageCircle },
   { key: "experience", label: "Experience", icon: FileText },
+  { key: "blog", label: "Blog", icon: BookOpen },
 ]
 
 export default function Dock({
