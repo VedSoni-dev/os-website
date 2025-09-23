@@ -8,7 +8,6 @@ import DesktopWindow from "./components/Window"
 import CommandPalette from "./components/CommandPalette"
 import BuildingStatus from "./components/BuildingStatus"
 import LoadingScreen from "./components/LoadingScreen"
-import { BackgroundGlitch, ErrorPopups, GlitchStyles, GlitchText } from "./components/GlitchEffects"
 import { AnimatePresence, motion } from "framer-motion"
 import ReactMarkdown from "react-markdown"
 import PixelBlast from "./components/PixelBlast"
@@ -1856,9 +1855,6 @@ export default function Page() {
   return (
     <main className="fixed inset-0 overflow-hidden">
       {/* Glitch Effects */}
-      <GlitchStyles />
-      <BackgroundGlitch />
-      <ErrorPopups />
       
       {/* PixelBlast Interactive Background */}
       <div className="absolute inset-0">

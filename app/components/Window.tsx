@@ -97,26 +97,18 @@ export default function DesktopWindow({
       style={{ zIndex }}
       onMouseDown={onFocus}
     >
-      {/* Ultra-transparent glassmorphism container */}
+      {/* Clean transparent container */}
       <div className="bg-white/5 backdrop-blur-2xl border border-white/30 shadow-2xl rounded-3xl overflow-hidden relative">
-        {/* Multiple ultra-subtle glassmorphism layers for depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-white/2 to-green-100/5 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-tl from-green-200/5 via-transparent to-white/6 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/3 to-green-50/4 pointer-events-none"></div>
         
-        {/* Ultra-glass header */}
+        {/* Clean header */}
         <div
           ref={headerRef}
           className={cn(
             "flex items-center justify-between px-6 py-4 cursor-grab active:cursor-grabbing relative",
-            "bg-white/8 backdrop-blur-xl border-b border-white/25",
-            "before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/6 before:via-white/3 before:to-white/2 before:pointer-events-none"
+            "bg-white/8 backdrop-blur-xl border-b border-white/25"
           )}
           style={{ userSelect: "none" }}
         >
-          {/* Ultra-subtle inner glow */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/4 via-white/2 to-transparent pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent pointer-events-none"></div>
           
           <div className="flex items-center gap-4 relative z-10">
             <div className="flex gap-2">
@@ -147,18 +139,14 @@ export default function DesktopWindow({
           
         </div>
         
-        {/* Ultra-transparent content area */}
+        {/* Clean content area */}
         <div className="h-[70vh] overflow-auto bg-white/3 backdrop-blur-2xl relative">
-          {/* Ultra-subtle content background overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/2 via-white/1 to-white/3 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-green-50/2 via-transparent to-white/2 pointer-events-none"></div>
           <div className="relative z-10">{children}</div>
         </div>
         
-        {/* Enhanced edge highlights for ultra-glass effect */}
+        {/* Simple edge borders */}
         <div className="absolute inset-0 rounded-3xl pointer-events-none">
-          <div className="absolute inset-0 rounded-3xl border border-white/40 shadow-inner"></div>
-          <div className="absolute inset-px rounded-3xl border border-white/20"></div>
+          <div className="absolute inset-0 rounded-3xl border border-white/20"></div>
         </div>
       </div>
     </div>

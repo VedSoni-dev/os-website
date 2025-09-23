@@ -21,7 +21,6 @@ export default function BuildingStatus({ onProjectClick }: BuildingStatusProps) 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [displayText, setDisplayText] = useState("")
   const [isTyping, setIsTyping] = useState(true)
-  const [glitchActive, setGlitchActive] = useState(false)
 
   useEffect(() => {
     const currentItem = buildingItems[currentIndex]
@@ -55,17 +54,6 @@ export default function BuildingStatus({ onProjectClick }: BuildingStatusProps) 
     }
   }, [displayText, isTyping, currentIndex, buildingItems])
 
-  // Random glitch effect
-  useEffect(() => {
-    const glitchInterval = setInterval(() => {
-      if (Math.random() < 0.1) { // 10% chance every interval
-        setGlitchActive(true)
-        setTimeout(() => setGlitchActive(false), 150)
-      }
-    }, 12000 + Math.random() * 8000) // Random interval between 12-20 seconds
-
-    return () => clearInterval(glitchInterval)
-  }, [])
 
   // Function to render text with colored project names
   const renderColoredText = (text: string, projectName: string, color: string) => {
@@ -100,14 +88,9 @@ export default function BuildingStatus({ onProjectClick }: BuildingStatusProps) 
       <div className="flex flex-col items-start gap-2">
         <span className="text-gray-500 text-2xl">Building:</span>
         <span 
-          className={`max-w-[500px] font-bold text-4xl font-mono transition-all duration-150 ${
-            glitchActive ? 'text-red-500 filter contrast-150' : 'text-gray-400'
-          } ${isProject && displayText.length > 0 ? 'cursor-pointer hover:text-white hover:underline' : ''}`}
-          style={{
-            textShadow: glitchActive 
-              ? '2px 0 #00ffff, -2px 0 #ff00ff' 
-              : 'none'
-          }}
+          className={`max-w-[500px] font-bold text-4xl font-mono transition-all duration-150 text-gray-400 ${
+            isProject && displayText.length > 0 ? 'cursor-pointer hover:text-white hover:underline' : ''
+          }`}
           onClick={handleClick}
         >
           {renderColoredText(displayText, currentItem.projectName, currentItem.color)}

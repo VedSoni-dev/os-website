@@ -3,9 +3,85 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { EffectComposer, EffectPass, RenderPass, Effect } from 'postprocessing';
+
+// Type definitions
+interface TouchPoint {
+  x: number;
+  y: number;
+  age: number;
+  force: number;
+  vx: number;
+  vy: number;
+}
+
+interface TouchTexture {
+  canvas: HTMLCanvasElement;
+  texture: THREE.Texture;
+  addTouch: (norm: { x: number; y: number }) => void;
+  update: () => void;
+  radiusScale: number;
+  size: number;
+}
+
+interface LiquidEffectOptions {
+  strength?: number;
+  freq?: number;
+}
+
+interface AnimationState {
+  currentAnimation: number;
+  animationStartTime: number;
+  transitionStartTime: number;
+  isTransitioning: boolean;
+  transitionDuration: number;
+  pauseBetweenAnimations: number;
+  currentValues: {
+    waveAmplitude: number;
+    waveEnabled: number;
+    pulseIntensity: number;
+    pulseEnabled: number;
+    rippleAmplitude: number;
+    rippleEnabled: number;
+    spiralIntensity: number;
+    spiralEnabled: number;
+    breathingIntensity: number;
+    breathingEnabled: number;
+  };
+  targetValues: {
+    waveAmplitude: number;
+    waveEnabled: number;
+    pulseIntensity: number;
+    pulseEnabled: number;
+    rippleAmplitude: number;
+    rippleEnabled: number;
+    spiralIntensity: number;
+    spiralEnabled: number;
+    breathingIntensity: number;
+    breathingEnabled: number;
+  };
+  animationSequence: any[];
+}
+
+interface ThreeRef {
+  renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene;
+  camera: THREE.OrthographicCamera;
+  material: THREE.ShaderMaterial;
+  clock: THREE.Clock;
+  clickIx: number;
+  uniforms: any;
+  resizeObserver: ResizeObserver;
+  raf: number;
+  quad: THREE.Mesh;
+  timeOffset: number;
+  composer?: EffectComposer;
+  touch?: TouchTexture;
+  liquidEffect?: Effect;
+  animationTimer?: NodeJS.Timeout;
+}
 import './PixelBlast.css';
 
-const createTouchTexture = () => {
+const createTouchTexture = (): TouchTexture => {
   const size = 64;
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -18,8 +94,8 @@ const createTouchTexture = () => {
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = false;
-  const trail = [];
-  let last = null;
+  const trail: TouchPoint[] = [];
+  let last: { x: number; y: number } | null = null;
   const maxAge = 64;
   let radius = 0.1 * size;
   const speed = 1 / maxAge;
@@ -27,11 +103,11 @@ const createTouchTexture = () => {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
-  const drawPoint = p => {
+  const drawPoint = (p: TouchPoint) => {
     const pos = { x: p.x * size, y: (1 - p.y) * size };
     let intensity = 1;
-    const easeOutSine = t => Math.sin((t * Math.PI) / 2);
-    const easeOutQuad = t => -t * (t - 2);
+    const easeOutSine = (t: number) => Math.sin((t * Math.PI) / 2);
+    const easeOutQuad = (t: number) => -t * (t - 2);
     if (p.age < maxAge * 0.3) intensity = easeOutSine(p.age / (maxAge * 0.3));
     else intensity = easeOutQuad(1 - (p.age - maxAge * 0.3) / (maxAge * 0.7)) || 0;
     intensity *= p.force;
@@ -46,7 +122,7 @@ const createTouchTexture = () => {
     ctx.arc(pos.x - offset, pos.y - offset, radius, 0, Math.PI * 2);
     ctx.fill();
   };
-  const addTouch = norm => {
+  const addTouch = (norm: { x: number; y: number }) => {
     let force = 0;
     let vx = 0;
     let vy = 0;
@@ -91,7 +167,7 @@ const createTouchTexture = () => {
   };
 };
 
-const createLiquidEffect = (texture, opts) => {
+const createLiquidEffect = (texture: THREE.Texture, opts?: LiquidEffectOptions) => {
   const fragment = `
     uniform sampler2D uTexture;
     uniform float uStrength;
@@ -128,6 +204,34 @@ const SHAPE_MAP = {
   diamond: 3
 };
 
+// Advanced easing functions
+const EASING = {
+  easeInOutCubic: (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+  easeOutElastic: (t: number) => t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1,
+  easeInOutQuart: (t: number) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2,
+  easeOutBack: (t: number) => 1 + 2.70158 * Math.pow(t - 1, 3) + 1.70158 * Math.pow(t - 1, 2),
+  easeInOutBack: (t: number) => {
+    const c1 = 1.70158;
+    const c2 = c1 * 1.525;
+    return t < 0.5
+      ? (Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
+      : (Math.pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2;
+  },
+  easeOutBounce: (t: number) => {
+    const n1 = 7.5625;
+    const d1 = 2.75;
+    if (t < 1 / d1) return n1 * t * t;
+    else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+    else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+    else return n1 * (t -= 2.625 / d1) * t + 0.984375;
+  },
+  easeInOutSine: (t: number) => -(Math.cos(Math.PI * t) - 1) / 2,
+  easeOutExpo: (t: number) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+  easeInOutCirc: (t: number) => t < 0.5 
+    ? (1 - Math.sqrt(1 - Math.pow(2 * t, 2))) / 2
+    : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2
+};
+
 const VERTEX_SRC = `
 void main() {
   gl_Position = vec4(position, 1.0);
@@ -149,6 +253,33 @@ uniform float uRippleSpeed;
 uniform float uRippleThickness;
 uniform float uRippleIntensity;
 uniform float uEdgeFade;
+
+uniform float uWaveAmplitude;
+uniform float uWaveFrequency;
+uniform float uWaveSpeed;
+uniform float uWaveTime;
+uniform int   uEnableAutoWaves;
+
+uniform float uPulseIntensity;
+uniform float uPulseSpeed;
+uniform float uPulseTime;
+uniform int   uEnableAutoPulse;
+
+uniform float uRippleWaveAmplitude;
+uniform float uRippleWaveFrequency;
+uniform float uRippleWaveSpeed;
+uniform float uRippleWaveTime;
+uniform int   uEnableAutoRipples;
+
+uniform float uSpiralIntensity;
+uniform float uSpiralSpeed;
+uniform float uSpiralTime;
+uniform int   uEnableSpiralWaves;
+
+uniform float uBreathingIntensity;
+uniform float uBreathingSpeed;
+uniform float uBreathingTime;
+uniform int   uEnableBreathing;
 
 uniform int   uShapeType;
 const int SHAPE_SQUARE   = 0;
@@ -249,6 +380,56 @@ void main(){
 
   float feed = base + (uDensity - 0.5) * 0.3;
 
+  // Auto wave effect with enhanced movement
+  if (uEnableAutoWaves == 1) {
+    float wave1 = sin(uv.x * uWaveFrequency + uWaveTime * uWaveSpeed) * uWaveAmplitude;
+    float wave2 = sin(uv.y * uWaveFrequency * 0.7 + uWaveTime * uWaveSpeed * 1.3) * uWaveAmplitude * 0.6;
+    float crossWave = sin((uv.x + uv.y) * uWaveFrequency * 0.5 + uWaveTime * uWaveSpeed * 0.8) * uWaveAmplitude * 0.4;
+    feed += wave1 + wave2 + crossWave;
+  }
+
+  // Enhanced pulse effect with breathing
+  if (uEnableAutoPulse == 1) {
+    float pulse = sin(uPulseTime * uPulseSpeed) * 0.5 + 0.5;
+    float secondaryPulse = sin(uPulseTime * uPulseSpeed * 1.618) * 0.3 + 0.3; // Golden ratio frequency
+    float radialPulse = 1.0 - smoothstep(0.0, 0.8, distance(uv, vec2(0.5)));
+    feed += (pulse + secondaryPulse * 0.5) * uPulseIntensity * radialPulse;
+  }
+
+  // Enhanced ripple waves with multiple centers
+  if (uEnableAutoRipples == 1) {
+    vec2 centers[3];
+    centers[0] = vec2(0.5, 0.5);
+    centers[1] = vec2(0.3, 0.7);
+    centers[2] = vec2(0.7, 0.3);
+    
+    float rippleSum = 0.0;
+    for(int i = 0; i < 3; i++) {
+      float dist = distance(uv, centers[i]);
+      float ripple = sin(dist * uRippleWaveFrequency - uRippleWaveTime * uRippleWaveSpeed) * uRippleWaveAmplitude;
+      ripple *= exp(-dist * (2.0 + float(i) * 0.5)); // Different fade rates
+      rippleSum += ripple;
+    }
+    feed += rippleSum;
+  }
+
+  // New spiral wave effect
+  if (uEnableSpiralWaves == 1) {
+    vec2 center = vec2(0.5, 0.5);
+    vec2 toCenter = uv - center;
+    float angle = atan(toCenter.y, toCenter.x);
+    float radius = length(toCenter);
+    float spiral = sin(radius * 20.0 - angle * 3.0 - uSpiralTime * uSpiralSpeed) * uSpiralIntensity;
+    spiral *= exp(-radius * 4.0); // Fade from center
+    feed += spiral;
+  }
+
+  // Breathing effect - global intensity modulation
+  if (uEnableBreathing == 1) {
+    float breathing = (sin(uBreathingTime * uBreathingSpeed) * 0.5 + 0.5) * uBreathingIntensity;
+    feed += breathing;
+  }
+
   float speed     = uRippleSpeed;
   float thickness = uRippleThickness;
   const float dampT     = 1.0;
@@ -295,10 +476,35 @@ void main(){
 
 const MAX_CLICKS = 10;
 
+interface PixelBlastProps {
+  variant?: 'square' | 'circle' | 'triangle' | 'diamond';
+  pixelSize?: number;
+  color?: string;
+  className?: string;
+  style?: React.CSSProperties;
+  antialias?: boolean;
+  patternScale?: number;
+  patternDensity?: number;
+  liquid?: boolean;
+  liquidStrength?: number;
+  liquidRadius?: number;
+  pixelSizeJitter?: number;
+  enableRipples?: boolean;
+  rippleIntensityScale?: number;
+  rippleThickness?: number;
+  rippleSpeed?: number;
+  liquidWobbleSpeed?: number;
+  autoPauseOffscreen?: boolean;
+  speed?: number;
+  transparent?: boolean;
+  edgeFade?: number;
+  noiseAmount?: number;
+}
+
 const PixelBlast = ({
   variant = 'square',
   pixelSize = 3,
-  color = '#22c55e', // Changed to green
+  color = '#22c55e',
   className,
   style,
   antialias = true,
@@ -318,18 +524,18 @@ const PixelBlast = ({
   transparent = true,
   edgeFade = 0.5,
   noiseAmount = 0
-}) => {
-  const containerRef = useRef(null);
+}: PixelBlastProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const visibilityRef = useRef({ visible: true });
   const speedRef = useRef(speed);
 
-  const threeRef = useRef(null);
-  const prevConfigRef = useRef(null);
+  const threeRef = useRef<ThreeRef | null>(null);
+  const prevConfigRef = useRef<any>(null);
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     speedRef.current = speed;
-    const needsReinitKeys = ['antialias', 'liquid', 'noiseAmount'];
+    const needsReinitKeys: (keyof typeof cfg)[] = ['antialias', 'liquid', 'noiseAmount'];
     const cfg = { antialias, liquid, noiseAmount };
     let mustReinit = false;
     if (!threeRef.current) mustReinit = true;
@@ -345,6 +551,7 @@ const PixelBlast = ({
         const t = threeRef.current;
         t.resizeObserver?.disconnect();
         cancelAnimationFrame(t.raf);
+        if (t.animationTimer) clearTimeout(t.animationTimer);
         t.quad?.geometry.dispose();
         t.material.dispose();
         t.composer?.dispose();
@@ -382,7 +589,34 @@ const PixelBlast = ({
         uRippleSpeed: { value: rippleSpeed },
         uRippleThickness: { value: rippleThickness },
         uRippleIntensity: { value: rippleIntensityScale },
-        uEdgeFade: { value: edgeFade }
+        uEdgeFade: { value: edgeFade },
+        // Wave uniforms
+        uWaveAmplitude: { value: 0.0 },
+        uWaveFrequency: { value: 8.0 },
+        uWaveSpeed: { value: 2.0 },
+        uWaveTime: { value: 0.0 },
+        uEnableAutoWaves: { value: 0 },
+        // Pulse uniforms
+        uPulseIntensity: { value: 0.0 },
+        uPulseSpeed: { value: 1.5 },
+        uPulseTime: { value: 0.0 },
+        uEnableAutoPulse: { value: 0 },
+        // Ripple wave uniforms
+        uRippleWaveAmplitude: { value: 0.0 },
+        uRippleWaveFrequency: { value: 12.0 },
+        uRippleWaveSpeed: { value: 3.0 },
+        uRippleWaveTime: { value: 0.0 },
+        uEnableAutoRipples: { value: 0 },
+        // New spiral uniforms
+        uSpiralIntensity: { value: 0.0 },
+        uSpiralSpeed: { value: 4.0 },
+        uSpiralTime: { value: 0.0 },
+        uEnableSpiralWaves: { value: 0 },
+        // New breathing uniforms
+        uBreathingIntensity: { value: 0.0 },
+        uBreathingSpeed: { value: 0.8 },
+        uBreathingTime: { value: 0.0 },
+        uEnableBreathing: { value: 0 }
       };
       const scene = new THREE.Scene();
       const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -420,9 +654,128 @@ const PixelBlast = ({
         return Math.random();
       };
       const timeOffset = randomFloat() * 1000;
-      let composer;
-      let touch;
-      let liquidEffect;
+      
+      // Advanced animation system with smooth transitions
+      let animationState = {
+        currentAnimation: 0,
+        animationStartTime: 0,
+        transitionStartTime: 0,
+        isTransitioning: false,
+        transitionDuration: 2000, // 2 seconds for smoother transitions
+        pauseBetweenAnimations: 1500,
+        
+        // Current interpolated values
+        currentValues: {
+          waveAmplitude: 0,
+          waveEnabled: 0,
+          pulseIntensity: 0,
+          pulseEnabled: 0,
+          rippleAmplitude: 0,
+          rippleEnabled: 0,
+          spiralIntensity: 0,
+          spiralEnabled: 0,
+          breathingIntensity: 0,
+          breathingEnabled: 0
+        },
+        
+        // Target values for current animation
+        targetValues: {
+          waveAmplitude: 0,
+          waveEnabled: 0,
+          pulseIntensity: 0,
+          pulseEnabled: 0,
+          rippleAmplitude: 0,
+          rippleEnabled: 0,
+          spiralIntensity: 0,
+          spiralEnabled: 0,
+          breathingIntensity: 0,
+          breathingEnabled: 0
+        },
+
+        // Enhanced animation sequence with more variety
+        animationSequence: [
+          { 
+            name: 'gentle_waves',
+            waveAmplitude: 0.35, 
+            waveEnabled: 1, 
+            duration: 4000,
+            easing: 'easeInOutSine'
+          },
+          { 
+            name: 'breathing_pulse',
+            breathingIntensity: 0.4,
+            breathingEnabled: 1,
+            pulseIntensity: 0.3,
+            pulseEnabled: 1,
+            duration: 3500,
+            easing: 'easeInOutCubic'
+          },
+          { 
+            name: 'ripple_storm',
+            rippleAmplitude: 0.45, 
+            rippleEnabled: 1,
+            duration: 3000,
+            easing: 'easeOutElastic'
+          },
+          { 
+            name: 'spiral_dance',
+            spiralIntensity: 0.5,
+            spiralEnabled: 1,
+            duration: 3500,
+            easing: 'easeInOutBack'
+          }
+        ]
+      };
+      
+      // Smooth transition function with advanced easing
+      const smoothTransition = (targetValues: any, duration: number, easingType: string = 'easeInOutCubic') => {
+        animationState.transitionStartTime = Date.now();
+        animationState.isTransitioning = true;
+        animationState.transitionDuration = duration;
+        animationState.targetValues = { ...animationState.targetValues, ...targetValues };
+        
+        setTimeout(() => {
+          animationState.isTransitioning = false;
+        }, duration);
+      };
+      
+      // Start next animation in sequence
+      const startNextAnimation = () => {
+        const animation = animationState.animationSequence[animationState.currentAnimation];
+        animationState.animationStartTime = Date.now();
+        
+        // Set target values and start smooth transition
+        smoothTransition(animation, 2000, animation.easing || 'easeInOutCubic');
+        
+        setTimeout(() => {
+          // After animation duration, transition back to base state
+          smoothTransition({
+            waveAmplitude: 0,
+            pulseIntensity: 0,
+            rippleAmplitude: 0,
+            spiralIntensity: 0,
+            breathingIntensity: 0,
+            waveEnabled: 0,
+            pulseEnabled: 0,
+            rippleEnabled: 0,
+            spiralEnabled: 0,
+            breathingEnabled: 0
+          }, 1500, 'easeInOutSine');
+          
+          // Move to next animation
+          animationState.currentAnimation = (animationState.currentAnimation + 1) % animationState.animationSequence.length;
+          
+          // Start next animation after transition completes
+          setTimeout(startNextAnimation, animation.duration + 3500); // Wait for animation + transition
+        }, animation.duration);
+      };
+      
+      // Start the animation sequence
+      const animationTimer = setTimeout(startNextAnimation, 2000); // Start after 2 seconds
+      
+      let composer: EffectComposer | undefined;
+      let touch: TouchTexture | undefined;
+      let liquidEffect: Effect | undefined;
       if (liquid) {
         touch = createTouchTexture();
         touch.radiusScale = liquidRadius;
@@ -458,7 +811,8 @@ const PixelBlast = ({
         composer.addPass(noisePass);
       }
       if (composer) composer.setSize(renderer.domElement.width, renderer.domElement.height);
-      const mapToPixels = e => {
+      
+      const mapToPixels = (e: PointerEvent) => {
         const rect = renderer.domElement.getBoundingClientRect();
         const scaleX = renderer.domElement.width / rect.width;
         const scaleY = renderer.domElement.height / rect.height;
@@ -471,27 +825,29 @@ const PixelBlast = ({
           h: renderer.domElement.height
         };
       };
-      const onPointerDown = e => {
+      
+      const onPointerDown = (e: PointerEvent) => {
         const { fx, fy } = mapToPixels(e);
         const ix = threeRef.current?.clickIx ?? 0;
         uniforms.uClickPos.value[ix].set(fx, fy);
         uniforms.uClickTimes.value[ix] = uniforms.uTime.value;
         if (threeRef.current) threeRef.current.clickIx = (ix + 1) % MAX_CLICKS;
       };
-      const onPointerMove = e => {
+      
+      const onPointerMove = (e: PointerEvent) => {
         if (!touch) return;
         const { fx, fy, w, h } = mapToPixels(e);
         touch.addTouch({ x: fx / w, y: fy / h });
       };
-      renderer.domElement.addEventListener('pointerdown', onPointerDown, {
-        passive: true
-      });
-      renderer.domElement.addEventListener('pointermove', onPointerMove, {
-        passive: true
-      });
+      
+      
+      renderer.domElement.addEventListener('pointerdown', onPointerDown, { passive: true });
+      renderer.domElement.addEventListener('pointermove', onPointerMove, { passive: true });
+      
       // Also listen globally so clicks over UI still trigger background ripples
       window.addEventListener('pointerdown', onPointerDown, { passive: true });
       window.addEventListener('pointermove', onPointerMove as any, { passive: true });
+      
       let raf = 0;
       const animate = () => {
         if (autoPauseOffscreen && !visibilityRef.current.visible) {
@@ -499,13 +855,57 @@ const PixelBlast = ({
           return;
         }
         uniforms.uTime.value = timeOffset + clock.getElapsedTime() * speedRef.current;
+        
+        // Advanced smooth transition interpolation
+        if (animationState.isTransitioning) {
+          const transitionProgress = Math.min(1, (Date.now() - animationState.transitionStartTime) / animationState.transitionDuration);
+          const easedProgress = EASING.easeInOutCubic(transitionProgress);
+          
+          // Interpolate all values
+          const keys = ['waveAmplitude', 'waveEnabled', 'pulseIntensity', 'pulseEnabled', 'rippleAmplitude', 'rippleEnabled', 'spiralIntensity', 'spiralEnabled', 'breathingIntensity', 'breathingEnabled'];
+          keys.forEach(key => {
+            animationState.currentValues[key as keyof typeof animationState.currentValues] = 
+              animationState.currentValues[key as keyof typeof animationState.currentValues] + 
+              (animationState.targetValues[key as keyof typeof animationState.targetValues] - animationState.currentValues[key as keyof typeof animationState.currentValues]) * easedProgress;
+          });
+        }
+        
+        // Apply current values to uniforms
+        uniforms.uEnableAutoWaves.value = Math.round(animationState.currentValues.waveEnabled);
+        uniforms.uEnableAutoPulse.value = Math.round(animationState.currentValues.pulseEnabled);
+        uniforms.uEnableAutoRipples.value = Math.round(animationState.currentValues.rippleEnabled);
+        uniforms.uEnableSpiralWaves.value = Math.round(animationState.currentValues.spiralEnabled);
+        uniforms.uEnableBreathing.value = Math.round(animationState.currentValues.breathingEnabled);
+        uniforms.uWaveAmplitude.value = animationState.currentValues.waveAmplitude;
+        uniforms.uPulseIntensity.value = animationState.currentValues.pulseIntensity;
+        uniforms.uRippleWaveAmplitude.value = animationState.currentValues.rippleAmplitude;
+        uniforms.uSpiralIntensity.value = animationState.currentValues.spiralIntensity;
+        uniforms.uBreathingIntensity.value = animationState.currentValues.breathingIntensity;
+        
+        // Update animation time values
+        if (uniforms.uEnableAutoWaves.value === 1) {
+          uniforms.uWaveTime.value = (Date.now() - animationState.animationStartTime) / 1000;
+        }
+        if (uniforms.uEnableAutoPulse.value === 1) {
+          uniforms.uPulseTime.value = (Date.now() - animationState.animationStartTime) / 1000;
+        }
+        if (uniforms.uEnableAutoRipples.value === 1) {
+          uniforms.uRippleWaveTime.value = (Date.now() - animationState.animationStartTime) / 1000;
+        }
+        if (uniforms.uEnableSpiralWaves.value === 1) {
+          uniforms.uSpiralTime.value = (Date.now() - animationState.animationStartTime) / 1000;
+        }
+        if (uniforms.uEnableBreathing.value === 1) {
+          uniforms.uBreathingTime.value = (Date.now() - animationState.animationStartTime) / 1000;
+        }
+        
         if (liquidEffect) liquidEffect.uniforms.get('uTime').value = uniforms.uTime.value;
         if (composer) {
           if (touch) touch.update();
-          composer.passes.forEach(p => {
+          composer.passes.forEach((p: any) => {
             const effs = p.effects;
             if (effs)
-              effs.forEach(eff => {
+              effs.forEach((eff: any) => {
                 const u = eff.uniforms?.get('uTime');
                 if (u) u.value = uniforms.uTime.value;
               });
@@ -515,6 +915,7 @@ const PixelBlast = ({
         raf = requestAnimationFrame(animate);
       };
       raf = requestAnimationFrame(animate);
+      
       threeRef.current = {
         renderer,
         scene,
@@ -529,30 +930,33 @@ const PixelBlast = ({
         timeOffset,
         composer,
         touch,
-        liquidEffect
+        liquidEffect,
+        animationTimer
       };
     } else {
       const t = threeRef.current;
-      t.uniforms.uShapeType.value = SHAPE_MAP[variant] ?? 0;
-      t.uniforms.uPixelSize.value = pixelSize * t.renderer.getPixelRatio();
-      t.uniforms.uColor.value.set(color);
-      t.uniforms.uScale.value = patternScale;
-      t.uniforms.uDensity.value = patternDensity;
-      t.uniforms.uPixelJitter.value = pixelSizeJitter;
-      t.uniforms.uEnableRipples.value = enableRipples ? 1 : 0;
-      t.uniforms.uRippleIntensity.value = rippleIntensityScale;
-      t.uniforms.uRippleThickness.value = rippleThickness;
-      t.uniforms.uRippleSpeed.value = rippleSpeed;
-      t.uniforms.uEdgeFade.value = edgeFade;
-      if (transparent) t.renderer.setClearAlpha(0);
-      else t.renderer.setClearColor(0x000000, 1);
-      if (t.liquidEffect) {
-        const uStrength = t.liquidEffect;
-        if (uStrength) uStrength.value = liquidStrength;
-        const uFreq = t.liquidEffect.uniforms.get('uFreq');
-        if (uFreq) uFreq.value = liquidWobbleSpeed;
+      if (t) {
+        t.uniforms.uShapeType.value = SHAPE_MAP[variant as keyof typeof SHAPE_MAP] ?? 0;
+        t.uniforms.uPixelSize.value = pixelSize * t.renderer.getPixelRatio();
+        t.uniforms.uColor.value.set(color);
+        t.uniforms.uScale.value = patternScale;
+        t.uniforms.uDensity.value = patternDensity;
+        t.uniforms.uPixelJitter.value = pixelSizeJitter;
+        t.uniforms.uEnableRipples.value = enableRipples ? 1 : 0;
+        t.uniforms.uRippleIntensity.value = rippleIntensityScale;
+        t.uniforms.uRippleThickness.value = rippleThickness;
+        t.uniforms.uRippleSpeed.value = rippleSpeed;
+        t.uniforms.uEdgeFade.value = edgeFade;
+        if (transparent) t.renderer.setClearAlpha(0);
+        else t.renderer.setClearColor(0x000000, 1);
+        if (t.liquidEffect) {
+          const uStrength = t.liquidEffect.uniforms.get('uStrength');
+          if (uStrength) uStrength.value = liquidStrength;
+          const uFreq = t.liquidEffect.uniforms.get('uFreq');
+          if (uFreq) uFreq.value = liquidWobbleSpeed;
+        }
+        if (t.touch) t.touch.radiusScale = liquidRadius;
       }
-      if (t.touch) t.touch.radiusScale = liquidRadius;
     }
     prevConfigRef.current = cfg;
     return () => {
@@ -561,13 +965,14 @@ const PixelBlast = ({
       const t = threeRef.current;
       t.resizeObserver?.disconnect();
       cancelAnimationFrame(t.raf);
+      if (t.animationTimer) clearTimeout(t.animationTimer);
       t.quad?.geometry.dispose();
       t.material.dispose();
       t.composer?.dispose();
       t.renderer.dispose();
       // Remove global listeners
-      window.removeEventListener('pointerdown', onPointerDown as any);
-      window.removeEventListener('pointermove', onPointerMove as any);
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
       if (t.renderer.domElement.parentElement === container) container.removeChild(t.renderer.domElement);
       threeRef.current = null;
     };
