@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-export type Theme = "default" | "tokyo-night" | "ghibli" | "cyberpunk" | "forest"
+export type Theme = "default" | "tokyo-night" | "ghibli" | "cyberpunk" | "forest" | "dune" | "dune-dark"
 
 interface ThemeStore {
   theme: Theme
@@ -81,6 +81,40 @@ export const themes = {
       secondary: "#ffd700",
       accent: "#ff6347",
       text: "#f0f8ff",
+    },
+  },
+  dune: {
+    name: "Dune",
+    colors: {
+      background: "#F5F1E8", // Warm desert sand
+      primary: "#D4AF37", // Classic gold
+      secondary: "#B8860B", // Darker gold
+      accent: "#CD853F", // Sandy brown
+      text: "#2F2F2F", // Dark charcoal
+    },
+    special: {
+      backgroundImage: "linear-gradient(135deg, #F5F1E8 0%, #E6D7C3 100%)",
+      sandTexture: "radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%)",
+      techGlow: "rgba(212, 175, 55, 0.2)",
+      borderAccent: "#D4AF37",
+      shadowColor: "rgba(212, 175, 55, 0.3)",
+    },
+  },
+  "dune-dark": {
+    name: "Dune Dark",
+    colors: {
+      background: "#1A1612", // Deep desert night
+      primary: "#D4AF37", // Same gold accent
+      secondary: "#B8860B", // Darker gold
+      accent: "#CD853F", // Sandy brown
+      text: "#F5F1E8", // Light sand
+    },
+    special: {
+      backgroundImage: "linear-gradient(135deg, #1A1612 0%, #2D2419 100%)",
+      sandTexture: "radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.15) 0%, transparent 50%)",
+      techGlow: "rgba(212, 175, 55, 0.4)",
+      borderAccent: "#D4AF37",
+      shadowColor: "rgba(212, 175, 55, 0.5)",
     },
   },
 }

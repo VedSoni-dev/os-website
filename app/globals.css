@@ -45,11 +45,11 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Added theme variables */
-    --theme-background: #fafaf0;
+    --theme-background: #1a1a1a;
     --theme-primary: #ff2e63;
     --theme-secondary: #ffe66d;
     --theme-accent: #4ecdc4;
-    --theme-text: #000000;
+    --theme-text: #ffffff;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -94,8 +94,8 @@
   body {
     @apply bg-background text-foreground;
     /* Apply theme background */
-    background-color: var(--theme-background, #fafaf0);
-    color: var(--theme-text, #000000);
+    background-color: var(--theme-background, #1a1a1a);
+    color: var(--theme-text, #ffffff);
     transition: all 0.3s ease;
   }
 
@@ -209,6 +209,151 @@
 
   body.cyberpunk-theme .project-card:hover {
     box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+    transform: translateY(-5px);
+  }
+
+  /* Dune theme styling */
+  body.dune-theme {
+    background: var(--theme-background, #F5F1E8);
+    background-image: var(--dune-background-image, linear-gradient(135deg, #F5F1E8 0%, #E6D7C3 100%));
+    position: relative;
+  }
+
+  body.dune-theme::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--dune-sand-texture, radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%));
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Dune Dark theme styling */
+  body.dune-dark-theme {
+    background: var(--theme-background, #1A1612);
+    background-image: var(--dune-background-image, linear-gradient(135deg, #1A1612 0%, #2D2419 100%));
+    position: relative;
+  }
+
+  body.dune-dark-theme::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--dune-sand-texture, radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.15) 0%, transparent 50%));
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Dune glow effects */
+  .dune-glow {
+    box-shadow: 0 0 15px var(--theme-primary, #D4AF37), 0 0 30px var(--theme-primary, #D4AF37);
+    border: 1px solid var(--theme-primary, #D4AF37);
+  }
+
+  .dune-text-glow {
+    text-shadow: 0 0 8px var(--theme-primary, #D4AF37), 0 0 16px var(--theme-primary, #D4AF37);
+  }
+
+  .dune-window {
+    background: rgba(245, 241, 232, 0.95);
+    border: 2px solid var(--theme-primary, #D4AF37);
+    box-shadow: 0 0 20px var(--dune-shadow-color, rgba(212, 175, 55, 0.3)), inset 0 0 20px var(--dune-tech-glow, rgba(212, 175, 55, 0.2));
+    backdrop-filter: blur(10px);
+  }
+
+  .dune-dark-theme .dune-window {
+    background: rgba(26, 22, 18, 0.95);
+    border: 2px solid var(--theme-primary, #D4AF37);
+    box-shadow: 0 0 20px var(--dune-shadow-color, rgba(212, 175, 55, 0.5)), inset 0 0 20px var(--dune-tech-glow, rgba(212, 175, 55, 0.4));
+  }
+
+  .dune-button {
+    background: linear-gradient(45deg, var(--theme-primary, #D4AF37), var(--theme-secondary, #B8860B));
+    border: 1px solid var(--theme-primary, #D4AF37);
+    box-shadow: 0 0 15px var(--dune-tech-glow, rgba(212, 175, 55, 0.3));
+    transition: all 0.3s ease;
+  }
+
+  .dune-button:hover {
+    box-shadow: 0 0 25px var(--dune-tech-glow, rgba(212, 175, 55, 0.5));
+    transform: translateY(-2px);
+  }
+
+  .dune-dock {
+    background: rgba(245, 241, 232, 0.9);
+    border: 1px solid var(--theme-primary, #D4AF37);
+    box-shadow: 0 0 30px var(--dune-shadow-color, rgba(212, 175, 55, 0.3));
+    backdrop-filter: blur(15px);
+  }
+
+  .dune-dark-theme .dune-dock {
+    background: rgba(26, 22, 18, 0.9);
+    border: 1px solid var(--theme-primary, #D4AF37);
+    box-shadow: 0 0 30px var(--dune-shadow-color, rgba(212, 175, 55, 0.5));
+  }
+
+  .dune-icon {
+    filter: drop-shadow(0 0 8px var(--theme-primary, #D4AF37));
+    transition: all 0.3s ease;
+  }
+
+  .dune-icon:hover {
+    filter: drop-shadow(0 0 15px var(--theme-primary, #D4AF37)) drop-shadow(0 0 25px var(--theme-secondary, #B8860B));
+    transform: scale(1.1);
+  }
+
+  /* Dune-specific themed components */
+  body.dune-theme .themed-chip,
+  body.dune-dark-theme .themed-chip {
+    background: linear-gradient(45deg, var(--theme-primary, #D4AF37), var(--theme-secondary, #B8860B));
+    box-shadow: 0 0 10px var(--dune-tech-glow, rgba(212, 175, 55, 0.3));
+    border: 1px solid var(--theme-primary, #D4AF37);
+  }
+
+  body.dune-theme .window-content,
+  body.dune-dark-theme .window-content {
+    background: rgba(245, 241, 232, 0.95);
+    border: 2px solid var(--theme-primary, #D4AF37);
+    box-shadow: 0 0 20px var(--dune-shadow-color, rgba(212, 175, 55, 0.3));
+    backdrop-filter: blur(10px);
+  }
+
+  body.dune-dark-theme .window-content {
+    background: rgba(26, 22, 18, 0.95);
+    box-shadow: 0 0 20px var(--dune-shadow-color, rgba(212, 175, 55, 0.5));
+  }
+
+  body.dune-theme h1,
+  body.dune-theme h2,
+  body.dune-theme h3,
+  body.dune-dark-theme h1,
+  body.dune-dark-theme h2,
+  body.dune-dark-theme h3 {
+    text-shadow: 0 0 10px var(--theme-primary, #D4AF37);
+  }
+
+  body.dune-theme .project-card,
+  body.dune-dark-theme .project-card {
+    background: rgba(245, 241, 232, 0.9);
+    border: 1px solid var(--theme-primary, #D4AF37);
+    box-shadow: 0 0 15px var(--dune-shadow-color, rgba(212, 175, 55, 0.3));
+    transition: all 0.3s ease;
+  }
+
+  body.dune-dark-theme .project-card {
+    background: rgba(26, 22, 18, 0.9);
+    box-shadow: 0 0 15px var(--dune-shadow-color, rgba(212, 175, 55, 0.5));
+  }
+
+  body.dune-theme .project-card:hover,
+  body.dune-dark-theme .project-card:hover {
+    box-shadow: 0 0 25px var(--dune-shadow-color, rgba(212, 175, 55, 0.6));
     transform: translateY(-5px);
   }
 }

@@ -13,6 +13,8 @@ export default function DesktopWindow({
   zIndex = 100,
   onClose = () => {},
   onFocus = () => {},
+  onMinimize = () => {},
+  onMaximize = () => {},
 }: {
   appKey?: string
   title?: string
@@ -20,6 +22,8 @@ export default function DesktopWindow({
   zIndex?: number
   onClose?: () => void
   onFocus?: () => void
+  onMinimize?: () => void
+  onMaximize?: () => void
 }) {
   const winRef = useRef<HTMLDivElement | null>(null)
   const headerRef = useRef<HTMLDivElement | null>(null)
@@ -89,33 +93,74 @@ export default function DesktopWindow({
   return (
     <div
       ref={winRef}
-      className="absolute top-0 left-0 w-[min(92vw,1000px)] md:w-[800px]"
+      className="absolute top-0 left-0 w-[min(95vw,1200px)] md:w-[900px]"
       style={{ zIndex }}
       onMouseDown={onFocus}
     >
-      <div className="border-[3px] border-black bg-white shadow-[10px_10px_0_0_#000] rounded-md overflow-hidden">
+      {/* Ultra-transparent glassmorphism container */}
+      <div className="bg-white/5 backdrop-blur-2xl border border-white/30 shadow-2xl rounded-3xl overflow-hidden relative">
+        {/* Multiple ultra-subtle glassmorphism layers for depth */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-white/2 to-green-100/5 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-tl from-green-200/5 via-transparent to-white/6 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/3 to-green-50/4 pointer-events-none"></div>
+        
+        {/* Ultra-glass header */}
         <div
           ref={headerRef}
           className={cn(
-            "flex items-center justify-between px-3 py-2 border-b-[3px] border-black cursor-grab active:cursor-grabbing",
-            "bg-[#FAFAF0]",
+            "flex items-center justify-between px-6 py-4 cursor-grab active:cursor-grabbing relative",
+            "bg-white/8 backdrop-blur-xl border-b border-white/25",
+            "before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/6 before:via-white/3 before:to-white/2 before:pointer-events-none"
           )}
           style={{ userSelect: "none" }}
         >
-          <div className="flex items-center gap-2">
-            <GripVertical className="w-5 h-5" aria-hidden="true" />
-            <div className="font-black text-xl">{title}</div>
+          {/* Ultra-subtle inner glow */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/4 via-white/2 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent pointer-events-none"></div>
+          
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="flex gap-2">
+              <button
+                onClick={onClose}
+                className="w-3.5 h-3.5 rounded-full bg-red-400/60 hover:bg-red-500/70 transition-all duration-300 group shadow-lg backdrop-blur-sm border border-white/20"
+                aria-label="Close window"
+              >
+                <div className="w-full h-full rounded-full bg-red-400/60 group-hover:bg-red-500/70 group-hover:scale-110 transition-all duration-300 shadow-inner"></div>
+              </button>
+              <button
+                onClick={onMinimize}
+                className="w-3.5 h-3.5 rounded-full bg-yellow-400/60 hover:bg-yellow-500/70 transition-all duration-300 group shadow-lg backdrop-blur-sm border border-white/20"
+                aria-label="Minimize window"
+              >
+                <div className="w-full h-3.5 rounded-full bg-yellow-400/60 group-hover:bg-yellow-500/70 group-hover:scale-110 transition-all duration-300 shadow-inner"></div>
+              </button>
+              <button
+                onClick={onMaximize}
+                className="w-3.5 h-3.5 rounded-full bg-green-400/60 hover:bg-green-500/70 transition-all duration-300 group shadow-lg backdrop-blur-sm border border-white/20"
+                aria-label="Maximize window"
+              >
+                <div className="w-full h-full rounded-full bg-green-400/60 group-hover:bg-green-500/70 group-hover:scale-110 transition-all duration-300 shadow-inner"></div>
+              </button>
+            </div>
+            <div className="font-semibold text-green-800/90 text-sm tracking-wide drop-shadow-sm">{title}</div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 grid place-items-center border-[3px] border-black rounded-md bg-white hover:translate-y-[-1px] transition-transform"
-            aria-label={`Close ${title}`}
-          >
-            <X className="w-4 h-4" />
-          </button>
+          
         </div>
-        <div className="max-h-[60vh] md:max-h-[65vh] overflow-auto bg-white">{children}</div>
+        
+        {/* Ultra-transparent content area */}
+        <div className="h-[70vh] overflow-auto bg-white/3 backdrop-blur-2xl relative">
+          {/* Ultra-subtle content background overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/2 via-white/1 to-white/3 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-green-50/2 via-transparent to-white/2 pointer-events-none"></div>
+          <div className="relative z-10">{children}</div>
+        </div>
+        
+        {/* Enhanced edge highlights for ultra-glass effect */}
+        <div className="absolute inset-0 rounded-3xl pointer-events-none">
+          <div className="absolute inset-0 rounded-3xl border border-white/40 shadow-inner"></div>
+          <div className="absolute inset-px rounded-3xl border border-white/20"></div>
+        </div>
       </div>
     </div>
   )
-}
+}     

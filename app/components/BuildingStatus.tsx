@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from "react"
 
-export default function BuildingStatus() {
+interface BuildingStatusProps {
+  onProjectClick?: (projectId: string) => void
+}
+
+export default function BuildingStatus({ onProjectClick }: BuildingStatusProps) {
   const buildingItems = [
-    { text: "Fern - AI tools for children with autism", projectName: "Fern", color: "#6b7280" }, // Muted gray-green
-    { text: "RecReach - pickup sports startup", projectName: "RecReach", color: "#9ca3af" }, // Muted red-gray
-    { text: "Hive - robotics startup for human-AI integration", projectName: "Hive", color: "#a78bfa" }, // Muted purple
-    { text: "Eden - AI intelligent robots with behaviors", projectName: "Eden", color: "#d97706" }, // Muted amber
-    { text: "autonomous drone navigation", projectName: "", color: "" },
-    { text: "computer vision models", projectName: "", color: "" },
-    { text: "robotics control systems", projectName: "", color: "" },
-    { text: "neural network architectures", projectName: "", color: "" },
+    { text: "Fern - AI tools for children with autism", projectName: "Fern", color: "#6b7280", projectId: "fern" }, // Muted gray-green
+    { text: "RecReach - pickup sports startup", projectName: "RecReach", color: "#9ca3af", projectId: "recreach" }, // Muted red-gray
+    { text: "Hive - robotics startup for human-AI integration", projectName: "Hive", color: "#a78bfa", projectId: "hive" }, // Muted purple
+    { text: "Eden - AI intelligent robots with behaviors", projectName: "Eden", color: "#d97706", projectId: "eden" }, // Muted amber
+    { text: "autonomous drone navigation", projectName: "", color: "", projectId: null },
+    { text: "computer vision models", projectName: "", color: "", projectId: null },
+    { text: "robotics control systems", projectName: "", color: "", projectId: null },
+    { text: "neural network architectures", projectName: "", color: "", projectId: null },
   ]
 
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -84,20 +88,27 @@ export default function BuildingStatus() {
   }
 
   const currentItem = buildingItems[currentIndex]
+  const isProject = currentItem.projectId !== null
 
+  const handleClick = () => {
+    if (isProject && onProjectClick && displayText.length > 0) {
+      onProjectClick(currentItem.projectId!)
+    }
+  }
   return (
-    <div className="fixed top-1/2 right-32 transform -translate-y-1/2 z-10 pointer-events-none select-none">
+    <div className="fixed top-1/2 right-32 transform -translate-y-1/2 z-10 select-none">
       <div className="flex flex-col items-start gap-2">
         <span className="text-gray-500 text-2xl">Building:</span>
         <span 
-          className={`min-w-[400px] font-bold text-4xl font-mono transition-all duration-150 ${
+          className={`max-w-[500px] font-bold text-4xl font-mono transition-all duration-150 ${
             glitchActive ? 'text-red-500 filter contrast-150' : 'text-gray-400'
-          }`}
+          } ${isProject && displayText.length > 0 ? 'cursor-pointer hover:text-white hover:underline' : ''}`}
           style={{
             textShadow: glitchActive 
               ? '2px 0 #00ffff, -2px 0 #ff00ff' 
               : 'none'
           }}
+          onClick={handleClick}
         >
           {renderColoredText(displayText, currentItem.projectName, currentItem.color)}
           {isTyping && <span className="animate-pulse">|</span>}
