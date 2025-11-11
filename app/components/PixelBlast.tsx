@@ -78,6 +78,8 @@ interface ThreeRef {
   touch?: TouchTexture;
   liquidEffect?: Effect;
   animationTimer?: NodeJS.Timeout;
+  onPointerDown?: (e: PointerEvent) => void;
+  onPointerMove?: (e: PointerEvent) => void;
 }
 import './PixelBlast.css';
 
@@ -188,7 +190,7 @@ const createLiquidEffect = (texture: THREE.Texture, opts?: LiquidEffectOptions) 
     }
     `;
   return new Effect('LiquidEffect', fragment, {
-    uniforms: new Map([
+    uniforms: new Map<string, THREE.Uniform<any>>([
       ['uTexture', new THREE.Uniform(texture)],
       ['uStrength', new THREE.Uniform(opts?.strength ?? 0.025)],
       ['uTime', new THREE.Uniform(0)],
@@ -552,6 +554,15 @@ const PixelBlast = ({
         t.resizeObserver?.disconnect();
         cancelAnimationFrame(t.raf);
         if (t.animationTimer) clearTimeout(t.animationTimer);
+        // Remove event listeners
+        if (t.onPointerDown) {
+          window.removeEventListener('pointerdown', t.onPointerDown);
+          t.renderer.domElement.removeEventListener('pointerdown', t.onPointerDown);
+        }
+        if (t.onPointerMove) {
+          window.removeEventListener('pointermove', t.onPointerMove);
+          t.renderer.domElement.removeEventListener('pointermove', t.onPointerMove);
+        }
         t.quad?.geometry.dispose();
         t.material.dispose();
         t.composer?.dispose();
@@ -899,7 +910,10 @@ const PixelBlast = ({
           uniforms.uBreathingTime.value = (Date.now() - animationState.animationStartTime) / 1000;
         }
         
-        if (liquidEffect) liquidEffect.uniforms.get('uTime').value = uniforms.uTime.value;
+        if (liquidEffect) {
+          const uTimeUniform = liquidEffect.uniforms.get('uTime');
+          if (uTimeUniform) uTimeUniform.value = uniforms.uTime.value;
+        }
         if (composer) {
           if (touch) touch.update();
           composer.passes.forEach((p: any) => {
@@ -931,7 +945,9 @@ const PixelBlast = ({
         composer,
         touch,
         liquidEffect,
-        animationTimer
+        animationTimer,
+        onPointerDown,
+        onPointerMove
       };
     } else {
       const t = threeRef.current;
@@ -971,8 +987,14 @@ const PixelBlast = ({
       t.composer?.dispose();
       t.renderer.dispose();
       // Remove global listeners
-      window.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointermove', onPointerMove);
+      if (t.onPointerDown) {
+        window.removeEventListener('pointerdown', t.onPointerDown);
+        t.renderer.domElement.removeEventListener('pointerdown', t.onPointerDown);
+      }
+      if (t.onPointerMove) {
+        window.removeEventListener('pointermove', t.onPointerMove);
+        t.renderer.domElement.removeEventListener('pointermove', t.onPointerMove);
+      }
       if (t.renderer.domElement.parentElement === container) container.removeChild(t.renderer.domElement);
       threeRef.current = null;
     };
